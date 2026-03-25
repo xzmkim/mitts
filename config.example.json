@@ -1,5 +1,4 @@
 {
     "api_key": "your-api-key-here",
-    "admin_password": "your-admin-password",
-    "default_voice": "mimo_default"
+    "admin_password": "your-admin-password"
 }
