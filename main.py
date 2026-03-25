@@ -52,91 +52,196 @@ async def index_page(request: Request):
     <head>
         <meta charset="UTF-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <title>小米 TTS 专属节点配置</title>
+        <title>小米 TTS</title>
         <style>
-            body {{ font-family: sans-serif; background: #f4f4f9; display: flex; justify-content: center; align-items: center; min-height: 100vh; margin: 0; padding: 20px; }}
-            .container {{ background: #fff; padding: 30px; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); max-width: 500px; width: 100%; }}
-            h2 {{ text-align: center; color: #333; margin-top: 0; }}
-            h3 {{ color: #444; margin-bottom: 10px; border-bottom: 2px solid #eee; padding-bottom: 5px; }}
-            label {{ font-weight: bold; margin-top: 15px; display: block; color: #555; font-size: 14px; }}
-            input, select, textarea {{ width: 100%; padding: 10px; margin-top: 5px; border: 1px solid #ccc; border-radius: 6px; box-sizing: border-box; font-size: 14px; }}
-            button {{ width: 100%; padding: 12px; background: #007bff; color: white; border: none; border-radius: 6px; font-size: 16px; margin-top: 20px; cursor: pointer; }}
-            button:hover {{ background: #0056b3; }}
-            button.preview-btn {{ background: #28a745; margin-top: 10px; }}
-            .info-box {{ background: #e9ecef; padding: 15px; border-radius: 6px; margin-top: 20px; font-size: 13px; border-left: 4px solid #007bff; word-break: break-all; }}
-            .preview-section {{ background: #f8f9fa; padding: 15px; border-radius: 8px; border: 1px solid #e9ecef; margin-top: 20px; }}
-            audio {{ width: 100%; margin-top: 15px; outline: none; }}
+            * {{ margin: 0; padding: 0; box-sizing: border-box; }}
+            body {{ font-family: -apple-system, sans-serif; background: #f5f5f5; min-height: 100vh; }}
+            .header {{ background: #fff; padding: 15px 20px; border-bottom: 1px solid #eee; display: flex; justify-content: space-between; align-items: center; }}
+            .header h1 {{ font-size: 18px; color: #333; }}
+            .header .settings {{ display: flex; gap: 10px; align-items: center; }}
+            .header input {{ padding: 6px 10px; border: 1px solid #ddd; border-radius: 4px; font-size: 13px; width: 200px; }}
+            .header button {{ padding: 6px 12px; background: #007bff; color: #fff; border: none; border-radius: 4px; cursor: pointer; font-size: 13px; }}
+            .main {{ display: flex; gap: 15px; padding: 15px; height: calc(100vh - 60px); }}
+            .panel {{ background: #fff; border-radius: 8px; padding: 15px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); }}
+            .left {{ width: 250px; display: flex; flex-direction: column; gap: 15px; }}
+            .center {{ flex: 1; display: flex; flex-direction: column; }}
+            .right {{ width: 300px; overflow-y: auto; }}
+            .section-title {{ font-size: 14px; font-weight: bold; color: #333; margin-bottom: 10px; }}
+            label {{ font-size: 13px; color: #666; margin-bottom: 5px; display: block; }}
+            select {{ width: 100%; padding: 8px; border: 1px solid #ddd; border-radius: 4px; font-size: 13px; }}
+            textarea {{ width: 100%; flex: 1; padding: 12px; border: 1px solid #ddd; border-radius: 6px; font-size: 14px; resize: none; }}
+            .btn {{ width: 100%; padding: 10px; border: none; border-radius: 6px; cursor: pointer; font-size: 14px; margin-top: 8px; }}
+            .btn-primary {{ background: #007bff; color: #fff; }}
+            .btn-success {{ background: #28a745; color: #fff; }}
+            .btn:hover {{ opacity: 0.9; }}
+            .btn:disabled {{ opacity: 0.5; cursor: not-allowed; }}
+            .import-section {{ margin-top: 10px; }}
+            .import-btn {{ display: flex; align-items: center; gap: 8px; padding: 10px; background: #f8f9fa; border: 1px solid #ddd; border-radius: 6px; cursor: pointer; margin-top: 8px; font-size: 13px; }}
+            .import-btn:hover {{ background: #e9ecef; }}
+            .history-item {{ background: #f8f9fa; border-radius: 6px; padding: 10px; margin-bottom: 10px; }}
+            .history-text {{ font-size: 12px; color: #666; margin-bottom: 8px; line-height: 1.4; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }}
+            .history-audio {{ width: 100%; height: 32px; }}
+            .modal {{ display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 1000; justify-content: center; align-items: center; }}
+            .modal.show {{ display: flex; }}
+            .modal-content {{ background: #fff; padding: 20px; border-radius: 8px; width: 350px; text-align: center; }}
+            .modal-content h3 {{ margin-bottom: 15px; }}
+            .modal-content input {{ width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 4px; margin-bottom: 10px; }}
         </style>
+        <script src="https://cdn.jsdelivr.net/npm/qrcodejs@1.0.0/qrcode.min.js"></script>
     </head>
     <body>
-        <div class="container">
-            <h2>⚙️ 小米 TTS 节点配置</h2>
-            
-            <form action="/save" method="post">
-                <label>访问鉴权密码 (Token):</label>
-                <input type="text" id="admin_password" name="admin_password" value="{config["admin_password"]}" required>
-                <label>小米 API Key (sk-...):</label>
-                <input type="password" id="api_key" name="api_key" value="{config["api_key"]}" required>
-                <button type="submit">💾 保存配置</button>
-            </form>
-
-            <div class="preview-section">
-                <h3>🎧 在线试听</h3>
-                <label>选择发音人:</label>
-                <select id="preview_voice">{options_html}</select>
-                <label style="margin-top:10px">试听文本:</label>
-                <textarea id="preview_text" rows="2">君不见黄河之水天上来，奔流到海不复回。</textarea>
-                <button type="button" class="preview-btn" onclick="playPreview()" id="play_btn">▶️ 试听</button>
-                <audio id="audio_player" controls style="display: none;"></audio>
+        <div class="header">
+            <h1>🔊 小米 TTS</h1>
+            <div class="settings">
+                <span style="font-size:13px; color:#666;">API Key</span>
+                <input type="password" id="api_key" placeholder="sk-..." value="{config["api_key"]}">
+                <span style="font-size:13px; color:#666;">访问 Token</span>
+                <input type="text" id="admin_password" placeholder="防盗刷密码" value="{config["admin_password"]}">
+                <button onclick="saveConfig()">保存</button>
             </div>
+        </div>
+        <div class="main">
+            <div class="left">
+                <div class="panel">
+                    <div class="section-title">发音人</div>
+                    <label>选择音色</label>
+                    <select id="voice_select">{options_html}</select>
+                    <label style="margin-top:12px">风格</label>
+                    <select id="style_preset" onchange="applyStyle()">
+                        <option value="">无风格</option>
+                        <option value="变快">变快</option>
+                        <option value="变慢">变慢</option>
+                        <option value="开心">开心</option>
+                        <option value="悲伤">悲伤</option>
+                        <option value="生气">生气</option>
+                        <option value="悄悄话">悄悄话</option>
+                        <option value="夹子音">夹子音</option>
+                        <option value="台湾腔">台湾腔</option>
+                        <option value="东北话">东北话</option>
+                        <option value="四川话">四川话</option>
+                        <option value="河南话">河南话</option>
+                        <option value="粤语">粤语</option>
+                        <option value="唱歌">唱歌</option>
+                        <option value="custom">自定义...</option>
+                    </select>
+                    <input type="text" id="style_custom" placeholder="输入风格，如：孙悟空" style="display:none; margin-top:8px; padding:8px; border:1px solid #ddd; border-radius:6px; font-size:13px;">
+                    <button class="btn btn-primary" onclick="generate()" id="gen_btn">🎧 试听</button>
+                </div>
+                <div class="panel import-section">
+                    <div class="section-title">导入阅读 App</div>
+                    <div class="import-btn" onclick="directImport()">📱 直接导入</div>
+                    <div class="import-btn" onclick="showQRModal()">📷 扫码导入</div>
+                </div>
+            </div>
+            <div class="center">
+                <div class="panel" style="flex:1; display:flex; flex-direction:column;">
+                    <div class="section-title">输入文本</div>
+                    <textarea id="text_input" placeholder="请输入要转换的文本...">君不见黄河之水天上来，奔流到海不复回。</textarea>
+                </div>
+            </div>
+            <div class="right">
+                <div class="panel" style="height:100%;">
+                    <div class="section-title">试听记录</div>
+                    <div id="history_list"></div>
+                </div>
+            </div>
+        </div>
 
-            <div class="info-box">
-                <b>📌 阅读 App 导入链接：</b><br><br>
-                <code id="import_link" style="cursor:pointer; display:block; padding:8px; background:#fff; border-radius:4px;" onclick="copyLink()" title="点击复制">{base_url}/api/legado-import?token={config["admin_password"]}&voice=mimo_default</code>
-                <span id="copy_tip" style="color:#28a745; display:none;">已复制</span>
+        <div class="modal" id="qr_modal">
+            <div class="modal-content">
+                <h3>扫码导入</h3>
+                <p style="font-size:13px; color:#666; margin-bottom:15px;">用阅读 App 扫描下方二维码</p>
+                <div id="qr_code" style="display:flex; justify-content:center; padding:10px;"></div>
+                <button class="btn btn-primary" style="margin-top:15px;" onclick="closeQRModal()">关闭</button>
             </div>
         </div>
 
         <script>
-            function updateImportLink() {{
-                const token = document.getElementById('admin_password').value;
-                const voice = document.getElementById('preview_voice').value;
-                const baseUrl = "{base_url}";
-                document.getElementById('import_link').innerText = `${{baseUrl}}/api/legado-import?token=${{encodeURIComponent(token)}}&voice=${{voice}}`;
-            }}
-            
-            document.getElementById('admin_password').addEventListener('input', updateImportLink);
-            document.getElementById('preview_voice').addEventListener('change', updateImportLink);
+            const baseUrl = "{base_url}";
+            let historyList = [];
 
-            function copyLink() {{
-                const link = document.getElementById('import_link').innerText;
-                const textarea = document.createElement('textarea');
-                textarea.value = link;
-                document.body.appendChild(textarea);
-                textarea.select();
-                document.execCommand('copy');
-                document.body.removeChild(textarea);
-                const tip = document.getElementById('copy_tip');
-                tip.style.display = 'inline';
-                setTimeout(() => tip.style.display = 'none', 1500);
-            }}
-            function playPreview() {{
+            function saveConfig() {{
+                const apiKey = document.getElementById('api_key').value;
                 const token = document.getElementById('admin_password').value;
-                const text = document.getElementById('preview_text').value;
-                const voice = document.getElementById('preview_voice').value;
-                const player = document.getElementById('audio_player');
-                const btn = document.getElementById('play_btn');
+                fetch('/save', {{
+                    method: 'POST',
+                    headers: {{'Content-Type': 'application/x-www-form-urlencoded'}},
+                    body: `api_key=${{encodeURIComponent(apiKey)}}&admin_password=${{encodeURIComponent(token)}}`
+                }}).then(() => alert('已保存'));
+            }}
+
+            function applyStyle() {{
+                const preset = document.getElementById('style_preset').value;
+                const custom = document.getElementById('style_custom');
+                custom.style.display = preset === 'custom' ? 'block' : 'none';
+            }}
+
+            function generate() {{
+                const token = document.getElementById('admin_password').value;
+                const text = document.getElementById('text_input').value.trim();
+                const voice = document.getElementById('voice_select').value;
+                const btn = document.getElementById('gen_btn');
                 
-                if (!token || !text) return alert("请填写参数！");
+                let style = document.getElementById('style_preset').value;
+                if (style === 'custom') {{
+                    style = document.getElementById('style_custom').value.trim();
+                }}
                 
-                btn.innerHTML = "⏳ 生成中...";
+                const finalText = style ? `<style>${{style}}</style>${{text}}` : text;
+                
+                if (!token) return alert('请先填写 Token');
+                if (!text) return alert('请输入文本');
+                
+                btn.innerHTML = '⏳ 生成中...';
                 btn.disabled = true;
                 
-                const url = `/tts?token=${{encodeURIComponent(token)}}&voice=${{encodeURIComponent(voice)}}&text=${{encodeURIComponent(text)}}`;
-                player.src = url;
-                player.style.display = 'block';
-                player.oncanplay = function() {{ btn.innerHTML = "▶️ 试听"; btn.disabled = false; player.play(); }};
-                player.onerror = function() {{ alert("生成失败！请检查 Token 或 API Key。"); btn.innerHTML = "▶️ 试听"; btn.disabled = false; player.style.display = 'none'; }};
+                const url = `/tts?token=${{encodeURIComponent(token)}}&voice=${{encodeURIComponent(voice)}}&text=${{encodeURIComponent(finalText)}}`;
+                
+                const item = {{ text: style ? `[${{style}}] ${{text}}` : text, voice: voice, url: url, time: new Date().toLocaleTimeString() }};
+                historyList.unshift(item);
+                renderHistory();
+                
+                const audio = new Audio(url);
+                audio.oncanplay = () => {{ btn.innerHTML = '🎧 试听'; btn.disabled = false; audio.play(); }};
+                audio.onerror = () => {{ btn.innerHTML = '🎧 试听'; btn.disabled = false; alert('生成失败'); }};
+            }}
+
+            function renderHistory() {{
+                const container = document.getElementById('history_list');
+                container.innerHTML = historyList.map((item, i) => `
+                    <div class="history-item">
+                        <div class="history-text">${{item.text}}</div>
+                        <audio class="history-audio" controls preload="none" src="${{item.url}}"></audio>
+                    </div>
+                `).join('');
+            }}
+
+            function directImport() {{
+                const token = document.getElementById('admin_password').value;
+                const voice = document.getElementById('voice_select').value;
+                const apiUrl = `${{baseUrl}}/api/legado-import?token=${{encodeURIComponent(token)}}&voice=${{voice}}`;
+                const importUrl = `legado://import/httpTTS?src=${{encodeURIComponent(apiUrl)}}`;
+                window.location.href = importUrl;
+            }}
+
+            function showQRModal() {{
+                const token = document.getElementById('admin_password').value;
+                const voice = document.getElementById('voice_select').value;
+                const url = `${{baseUrl}}/api/legado-import?token=${{encodeURIComponent(token)}}&voice=${{voice}}`;
+                
+                const qrContainer = document.getElementById('qr_code');
+                qrContainer.innerHTML = '';
+                new QRCode(qrContainer, {{
+                    text: url,
+                    width: 200,
+                    height: 200,
+                    colorDark: '#000000',
+                    colorLight: '#ffffff',
+                }});
+                document.getElementById('qr_modal').classList.add('show');
+            }}
+            function closeQRModal() {{
+                document.getElementById('qr_modal').classList.remove('show');
             }}
         </script>
     </body>
